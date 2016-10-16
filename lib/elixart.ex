@@ -31,12 +31,16 @@ defmodule Elixart do
 
       {:calc, 0, acc} ->
         send initiator, {:result, job.(acc)}
-        Process.exit(next_worker, :normal)
-        Process.exit(self(), :normal)
+        send self(), :done
+        worker(initiator, job, next_worker)
 
       {:calc, rest_hops, acc} ->
         send next_worker, {:calc, rest_hops - 1, job.(acc)}
         worker(initiator, job, next_worker)
+
+      :done ->
+        send next_worker, :done
+        exit(:normal)
 
       _ -> IO.puts "i am from worker"
     end
