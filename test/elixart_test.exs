@@ -45,6 +45,4 @@ defmodule ElixartTest do
     assert calculate(job: double, wc: 2, hc: 2, init: 1) == 8
     assert calculate(job: double, wc: 2, hc: 3, init: 1) == 16
   end
-
-
 end

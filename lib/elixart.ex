@@ -24,45 +24,65 @@ defmodule Elixart do
     end
   end
 
-  def worker(initiator, job, next_worker) do
+  def worker(%{state: :initializing} = data) do
+    receive do
+      {:next, pid} ->
+        worker(%{data | state: :working, next_worker: pid })
+      _ ->
+        IO.puts "i am from entry point"
+    end
+  end
+
+  def worker(%{state: :working} = data) do
+    %{
+      initiator: initiator,
+      job: job,
+      next_worker: next_worker,
+      } = data
     receive do
       {:calc, 0, acc} ->
         send initiator, {:result, job.(acc)}
         send self(), :done
-        worker(initiator, job, next_worker)
+        worker(data)
 
       {:calc, rest_hops, acc} ->
         send next_worker, {:calc, rest_hops - 1, job.(acc)}
-        worker(initiator, job, next_worker)
+        worker(data)
 
       :done ->
         send next_worker, :done
         exit(:normal)
 
-      _ -> IO.puts "i am from worker"
-    end
-  end
-
-  def entry_point(initiator, job) do
-    receive do
-      {:next ,pid} -> worker(initiator, job, pid)
-      _ -> IO.puts "i am from entry point"
+      _ ->
+        IO.puts "i am from worker"
     end
   end
 
   defp create_ring(initiator, job, size) do
-    entry_point = spawn_link(Elixart, :entry_point, [initiator, job])
+    initial_data = %{
+      initiator: initiator,
+      job: job,
+      next_worker: nil,
+      state: :initializing,
+    }
+    entry_point = spawn_link(Elixart, :worker, [initial_data])
     last_worker = create_workers(initiator, job, size - 1, entry_point)
     send entry_point, {:next, last_worker}
     entry_point
   end
 
-  defp create_workers(_, _, count, last_worker) when count == 0 do
+  defp create_workers(_, _, 0, last_worker) do
     last_worker
   end
 
   defp create_workers(initiator, job, count, next_worker) do
-    new_worker = spawn_link(Elixart, :worker, [initiator, job, next_worker])
+    data = %{
+      initiator: initiator,
+      job: job,
+      next_worker: next_worker,
+      state: :working,
+    }
+    new_worker = spawn_link(Elixart, :worker, [data])
     create_workers(initiator, job, count - 1, new_worker)
   end
 
