@@ -28,8 +28,9 @@ defmodule Elixart do
     receive do
       {:next, pid} ->
         worker(%{data | state: :working, next_worker: pid })
+
       _ ->
-        IO.puts "i am from entry point"
+        IO.puts :stderr, "Unexpected message received."
     end
   end
 
@@ -54,7 +55,7 @@ defmodule Elixart do
         exit(:normal)
 
       _ ->
-        IO.puts "i am from worker"
+        IO.puts :stderr, "Unexpected message received."
     end
   end
 
