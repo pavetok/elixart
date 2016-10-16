@@ -7,7 +7,7 @@ defmodule Elixart do
 
   # Capitalize
   def capitalize(str) do
-    Enum.map_join(String.split(str), " ", fn word -> String.capitalize(word) end)
+    Enum.map_join(String.split(str), " ", &String.capitalize/1)
   end
 
   # Ping Pong
