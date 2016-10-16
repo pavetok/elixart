@@ -1,13 +1,16 @@
 defmodule Elixart do
 
+  # Hello World
   def hello do
     "Hello World"
   end
 
+  # Capitalize
   def capitalize(str) do
-    Enum.map_join(String.split(str) , " ", fn word -> String.capitalize(word) end)
+    Enum.map_join(String.split(str), " ", fn word -> String.capitalize(word) end)
   end
 
+  # Ping Pong
   def pong do
     receive do
       {:ping, from} -> send from, :pong
@@ -24,6 +27,7 @@ defmodule Elixart do
     end
   end
 
+  # Process Ring
   def worker(%{state: :initializing} = data) do
     receive do
       {:next, pid} ->
