@@ -26,9 +26,6 @@ defmodule Elixart do
 
   def worker(initiator, job, next_worker) do
     receive do
-      {:next, pid} ->
-        worker(initiator, job, pid)
-
       {:calc, 0, acc} ->
         send initiator, {:result, job.(acc)}
         send self(), :done
@@ -46,8 +43,15 @@ defmodule Elixart do
     end
   end
 
+  def entry_point(initiator, job) do
+    receive do
+      {:next ,pid} -> worker(initiator, job, pid)
+      _ -> IO.puts "i am from entry point"
+    end
+  end
+
   defp create_ring(initiator, job, size) do
-    entry_point = spawn_link(Elixart, :worker, [initiator, job, nil])
+    entry_point = spawn_link(Elixart, :entry_point, [initiator, job])
     last_worker = create_workers(initiator, job, size - 1, entry_point)
     send entry_point, {:next, last_worker}
     entry_point
